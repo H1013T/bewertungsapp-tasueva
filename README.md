@@ -6,7 +6,7 @@ Klasse: 4aAPC
 
 Backend:
 ```
-cd backend
+cd backend/bewertungsapp-api
 npm install
 npx sequelize-cli db:create
 npx sequelize-cli db:migrate
@@ -42,10 +42,10 @@ Eigene `config/config.json` lokal aus `config/config.example.json` ableiten, nic
 
 ## Einheit 4: Backend-Routen
 
-- [ ] CRUD für Team und Project
-- [ ] POST-Route für Evaluation inkl. Validierung
-- [ ] Aggregations-Route: Durchschnitt der Punktzahl pro Projekt und Kriterium
-- [ ] Kurze Endpunkt-Dokumentation (Methode, Pfad, Body, Rückgabe) unten in diesem README oder in `docs/`
+- [X] CRUD für Team und Project
+- [X] POST-Route für Evaluation inkl. Validierung
+- [X] Aggregations-Route: Durchschnitt der Punktzahl pro Projekt und Kriterium
+- [X] Kurze Endpunkt-Dokumentation (Methode, Pfad, Body, Rückgabe) unten in diesem README oder in `docs/`
 
 ## Einheit 5: Postman-Test
 
@@ -69,9 +69,62 @@ Eigene `config/config.json` lokal aus `config/config.example.json` ableiten, nic
 
 ## Endpunkt-Dokumentation (laufend ergänzen)
 
+Basis-URL: `http://localhost:3000`, alle Bodies als JSON (`Content-Type: application/json`).
+
+### Teams (`routes/teams.js`)
+
 | Methode | Pfad | Body | Rückgabe |
 |---|---|---|---|
-| GET | /teams | – | Liste aller Teams |
+| GET | /teams | – | 200, Liste aller Teams inkl. `Members` und `Projects` |
+| GET | /teams/:id | – | 200, ein Team inkl. `Members` und `Projects` · 404 wenn nicht vorhanden |
+| POST | /teams | `{ "name": "Team A", "klasse": "4aAPC" }` (`name` Pflicht) | 201, angelegtes Team · 400 wenn `name` fehlt |
+| PUT | /teams/:id | `{ "name"?, "klasse"? }` | 200, aktualisiertes Team · 400 wenn `name` leer · 404 wenn nicht vorhanden |
+| DELETE | /teams/:id | – | 204 · 404 wenn nicht vorhanden · 409 wenn das Team noch Projekte hat |
+
+### Projekte (`routes/projects.js`)
+
+| Methode | Pfad | Body | Rückgabe |
+|---|---|---|---|
+| GET | /projects | – | 200, Liste aller Projekte inkl. `Team` |
+| GET | /projects/:id | – | 200, ein Projekt inkl. `Team` und `Evaluations` (mit `Criterion`) · 404 |
+| POST | /projects | `{ "titel": "Bewertungsapp", "beschreibung": "...", "praesentiertAm": "2026-11-12T10:00:00Z", "teamId": 1 }` (`titel`, `teamId` Pflicht) | 201, angelegtes Projekt · 400 wenn Pflichtfeld fehlt · 404 wenn `teamId` nicht existiert |
+| PUT | /projects/:id | `{ "titel"?, "beschreibung"?, "praesentiertAm"?, "teamId"? }` | 200, aktualisiertes Projekt · 400 wenn `titel` leer · 404 wenn Projekt oder `teamId` nicht existiert |
+| DELETE | /projects/:id | – | 204, löscht auch die Bewertungen des Projekts · 404 |
+| GET | /projects/:id/statistik | – | 200, Durchschnitt der Punktzahl pro Kriterium (siehe unten) · 404 |
+
+Beispielantwort `GET /projects/1/statistik`:
+
+```json
+{
+  "projectId": 1,
+  "titel": "Bewertungsapp",
+  "kriterien": [
+    { "criterionId": 1, "kriterium": "Inhalt", "durchschnitt": 7.5, "anzahlBewertungen": 2 },
+    { "criterionId": 3, "kriterium": "Technische Umsetzung", "durchschnitt": 9, "anzahlBewertungen": 2 }
+  ]
+}
+```
+
+Umsetzung mit `fn('AVG', col('score'))` und `group: ['criterionId', ...]`, erzeugtes SQL:
+`SELECT criterionId, Criterion.name, AVG(score), COUNT(Evaluation.id) FROM Evaluations LEFT JOIN Criteria ... WHERE projectId = 1 GROUP BY criterionId, ...`
+
+### Bewertungen (`routes/evaluations.js`)
+
+| Methode | Pfad | Body | Rückgabe |
+|---|---|---|---|
+| GET | /evaluations | – (optional Query `?projectId=1`) | 200, Liste der Bewertungen inkl. `Project`, `Criterion`, `Juror` |
+| POST | /evaluations | `{ "score": 8, "comment": "Gut", "projectId": 1, "criterionId": 1, "jurorId": 1 }` (alle außer `comment` Pflicht) | 201, gespeicherte Bewertung (siehe Fehlerfälle unten) |
+
+### Statuscodes und Fehlermeldungen
+
+Alle Fehler kommen als `{ "error": "<Meldung>" }` zurück.
+
+| Code | Wann |
+|---|---|
+| 400 | Pflichtfeld fehlt/leer, `score` keine ganze Zahl oder außerhalb `0..maxScore` des Kriteriums, ungültiges JSON |
+| 404 | ID im Pfad existiert nicht, oder eine referenzierte ID im Body (`teamId`, `projectId`, `criterionId`, `jurorId`) existiert nicht, oder unbekannte Route |
+| 409 | Juror hat dieses Projekt für dieses Kriterium schon bewertet (Unique-Constraint), oder Team mit Projekten soll gelöscht werden |
+| 500 | Unerwarteter Server-/Datenbankfehler |
 
 ## Bekannte Einschränkungen
 
