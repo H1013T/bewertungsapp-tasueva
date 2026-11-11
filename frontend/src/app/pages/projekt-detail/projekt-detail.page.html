@@ -1,0 +1,82 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/projekte" text="Projekte"></ion-back-button>
+    </ion-buttons>
+    <ion-title>{{ projekt()?.titel ?? 'Projekt' }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  @if (laedt()) {
+    <div class="zentriert"><ion-spinner></ion-spinner></div>
+  } @else if (fehler()) {
+    <div class="zentriert">
+      <ion-text color="danger">{{ fehler() }}</ion-text>
+    </div>
+  } @else if (projekt(); as p) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>
+          {{ p.Team?.name ?? 'Kein Team' }}
+          @if (p.Team?.klasse) {
+            · {{ p.Team.klasse }}
+          }
+        </ion-card-subtitle>
+        <ion-card-title>{{ p.titel }}</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        @if (p.beschreibung) {
+          <p>{{ p.beschreibung }}</p>
+        }
+        @if (p.praesentiertAm) {
+          <p class="meta">Präsentiert am {{ p.praesentiertAm | date: 'dd.MM.yyyy, HH:mm' }}</p>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    @if (statistik()?.kriterien?.length) {
+      <ion-list>
+        <ion-list-header>
+          <ion-label>Durchschnitt pro Kriterium</ion-label>
+        </ion-list-header>
+        @for (k of statistik()!.kriterien; track k.criterionId) {
+          <ion-item>
+            <ion-label>
+              <h3>{{ k.kriterium }}</h3>
+              <ion-progress-bar [value]="k.durchschnitt / k.maxScore"></ion-progress-bar>
+            </ion-label>
+            <ion-note slot="end">
+              {{ k.durchschnitt | number: '1.0-2' }} / {{ k.maxScore }}
+              <small>({{ k.anzahlBewertungen }}×)</small>
+            </ion-note>
+          </ion-item>
+        }
+      </ion-list>
+    }
+
+    <ion-list>
+      <ion-list-header>
+        <ion-label>Bisherige Bewertungen ({{ p.Evaluations?.length ?? 0 }})</ion-label>
+      </ion-list-header>
+      @for (e of p.Evaluations ?? []; track e.id) {
+        <ion-item>
+          <ion-label class="ion-text-wrap">
+            <h3>{{ e.Criterion?.name ?? 'Kriterium ' + e.criterionId }}</h3>
+            <p>von {{ e.Juror?.name ?? 'Juror ' + e.jurorId }}</p>
+            @if (e.comment) {
+              <p class="kommentar">„{{ e.comment }}“</p>
+            }
+          </ion-label>
+          <ion-note slot="end" class="punkte">
+            {{ e.score }}<small> / {{ e.Criterion?.maxScore ?? '?' }}</small>
+          </ion-note>
+        </ion-item>
+      } @empty {
+        <ion-item lines="none">
+          <ion-label color="medium">Für dieses Projekt gibt es noch keine Bewertungen.</ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>

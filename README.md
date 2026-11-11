@@ -6,7 +6,7 @@ Klasse: 4aAPC
 
 Backend:
 ```
-cd backend/bewertungsapp-api
+cd backend
 npm install
 npx sequelize-cli db:create
 npx sequelize-cli db:migrate
@@ -30,15 +30,15 @@ Eigene `config/config.json` lokal aus `config/config.example.json` ableiten, nic
 
 ## Einheit 2: Datenmodell anlegen
 
-- [ ] Ausgefüllte Planungsvorlage: `docs/diagramm/planungsvorlage.html`
-- [ ] Verwendete `model:generate`-Befehle dokumentiert
-- [ ] Screenshot der angelegten Tabellen im DB-Tool: `docs/screenshots/`
+- [X] Ausgefüllte Planungsvorlage: `docs/diagramm/planungsvorlage.html`
+- [X] Verwendete `model:generate`-Befehle dokumentiert
+- [X] Screenshot der angelegten Tabellen im DB-Tool: `docs/screenshots/`
 
 ## Einheit 3: Assoziationen und weitere Modelle
 
-- [ ] Alle Modelle (Team, Member, Project, Criterion, Juror, Evaluation) mit ausgefüllten `associate`-Methoden
-- [ ] Unique-Constraint auf (projectId, criterionId, jurorId) bei Evaluation
-- [ ] Mindestens ein Seeder mit Testdaten
+- [X] Alle Modelle (Team, Member, Project, Criterion, Juror, Evaluation) mit ausgefüllten `associate`-Methoden
+- [X] Unique-Constraint auf (projectId, criterionId, jurorId) bei Evaluation
+- [X] Mindestens ein Seeder mit Testdaten
 
 ## Einheit 4: Backend-Routen
 
@@ -56,9 +56,16 @@ Eigene `config/config.json` lokal aus `config/config.example.json` ableiten, nic
 
 ## Einheit 6: IONIC-Frontend
 
-- [ ] Projektliste mit Team-Zuordnung
-- [ ] Detailansicht eines Projekts mit bisherigen Bewertungen
-- [ ] API-Service vollständig an eigenes Backend angebunden
+- [X] Projektliste mit Team-Zuordnung
+- [X] Detailansicht eines Projekts mit bisherigen Bewertungen
+- [X] API-Service vollständig an eigenes Backend angebunden
+
+Umsetzung (Ionic 9 / Angular 22, Standalone-Komponenten, benötigt Node ≥ 22.22.3, getestet mit Node 24):
+
+- API-Service: `frontend/src/app/services/api.service.ts` (Teams, Projekte inkl. Statistik, Bewertungen), Backend-URL in `src/environments/environment.ts`
+- Listenansicht `/projekte`: `frontend/src/app/pages/projekte-liste/` – alle Projekte mit Team-Badge, Pull-to-Refresh
+- Detailansicht `/projekt-detail/:id`: `frontend/src/app/pages/projekt-detail/` – Projektdaten, Team, Durchschnitt pro Kriterium und alle bisherigen Bewertungen (Kriterium, Juror, Punkte, Kommentar)
+- Demodaten: Seeder `20261028080000-demo-teams-projekte.js` (2 Teams, 2 Projekte, 2 Juroren, 5 Bewertungen)
 
 ## Einheit 7: Login und Endabgabe
 
@@ -86,7 +93,7 @@ Basis-URL: `http://localhost:3000`, alle Bodies als JSON (`Content-Type: applica
 | Methode | Pfad | Body | Rückgabe |
 |---|---|---|---|
 | GET | /projects | – | 200, Liste aller Projekte inkl. `Team` |
-| GET | /projects/:id | – | 200, ein Projekt inkl. `Team` und `Evaluations` (mit `Criterion`) · 404 |
+| GET | /projects/:id | – | 200, ein Projekt inkl. `Team` und `Evaluations` (mit `Criterion` und `Juror`) · 404 |
 | POST | /projects | `{ "titel": "Bewertungsapp", "beschreibung": "...", "praesentiertAm": "2026-11-12T10:00:00Z", "teamId": 1 }` (`titel`, `teamId` Pflicht) | 201, angelegtes Projekt · 400 wenn Pflichtfeld fehlt · 404 wenn `teamId` nicht existiert |
 | PUT | /projects/:id | `{ "titel"?, "beschreibung"?, "praesentiertAm"?, "teamId"? }` | 200, aktualisiertes Projekt · 400 wenn `titel` leer · 404 wenn Projekt oder `teamId` nicht existiert |
 | DELETE | /projects/:id | – | 204, löscht auch die Bewertungen des Projekts · 404 |
@@ -99,8 +106,8 @@ Beispielantwort `GET /projects/1/statistik`:
   "projectId": 1,
   "titel": "Bewertungsapp",
   "kriterien": [
-    { "criterionId": 1, "kriterium": "Inhalt", "durchschnitt": 7.5, "anzahlBewertungen": 2 },
-    { "criterionId": 3, "kriterium": "Technische Umsetzung", "durchschnitt": 9, "anzahlBewertungen": 2 }
+    { "criterionId": 1, "kriterium": "Inhalt", "maxScore": 10, "durchschnitt": 7.5, "anzahlBewertungen": 2 },
+    { "criterionId": 3, "kriterium": "Technische Umsetzung", "maxScore": 10, "durchschnitt": 9, "anzahlBewertungen": 2 }
   ]
 }
 ```

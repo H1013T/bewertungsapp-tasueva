@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { fn, col } = require('sequelize');
 const db = require('../models');
-const { Project, Team, Evaluation, Criterion } = db;
+const { Project, Team, Evaluation, Criterion, Juror } = db;
+///CRUD
 
 // alle Projekte inkl. Team
 router.get('/', async (req, res) => {
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
 // ein Projekt per ID inkl. Team und Bewertungen
 router.get('/:id', async (req, res) => {
   const project = await Project.findByPk(req.params.id, {
-    include: [Team, { model: Evaluation, include: Criterion }]
+    include: [Team, { model: Evaluation, include: [Criterion, { model: Juror, attributes: ['id', 'name'] }] }]
   });
   if (!project) return res.status(404).json({ error: 'Projekt nicht gefunden' });
   res.json(project);
@@ -29,11 +30,12 @@ router.get('/:id/statistik', async (req, res) => {
     attributes: [
       'criterionId',
       [col('Criterion.name'), 'kriterium'],
+      [col('Criterion.maxScore'), 'maxScore'],
       [fn('AVG', col('score')), 'durchschnitt'],
       [fn('COUNT', col('Evaluation.id')), 'anzahlBewertungen']
     ],
     include: { model: Criterion, attributes: [] },
-    group: ['criterionId', 'Criterion.id', 'Criterion.name'],
+    group: ['criterionId', 'Criterion.id', 'Criterion.name', 'Criterion.maxScore'],
     raw: true
   });
 
@@ -43,6 +45,7 @@ router.get('/:id/statistik', async (req, res) => {
     kriterien: ergebnis.map(e => ({
       criterionId: e.criterionId,
       kriterium: e.kriterium,
+      maxScore: e.maxScore,
       durchschnitt: Number(e.durchschnitt),
       anzahlBewertungen: Number(e.anzahlBewertungen)
     }))

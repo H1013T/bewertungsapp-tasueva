@@ -34,6 +34,7 @@ module.exports = {
       }
     });
 
+    //Unique Constraint für die Kombination aus projectId, criterionId und jurorId
     await queryInterface.addConstraint('Evaluations', {
       fields: ['projectId', 'criterionId', 'jurorId'],
       type: 'unique',

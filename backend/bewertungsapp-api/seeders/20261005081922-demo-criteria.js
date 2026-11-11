@@ -1,4 +1,5 @@
 'use strict';
+//Testdaten für Kriterien
 module.exports = {
   async up(queryInterface) {
     await queryInterface.bulkInsert('Criteria', [

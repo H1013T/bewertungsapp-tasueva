@@ -1,0 +1,40 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Projekte</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="laden($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  @if (laedt()) {
+    <div class="zentriert"><ion-spinner></ion-spinner></div>
+  } @else if (fehler()) {
+    <div class="zentriert">
+      <ion-text color="danger">{{ fehler() }}</ion-text>
+    </div>
+  } @else if (projekte().length === 0) {
+    <div class="zentriert">
+      <ion-text color="medium">Noch keine Projekte vorhanden.</ion-text>
+    </div>
+  } @else {
+    <ion-list>
+      @for (projekt of projekte(); track projekt.id) {
+        <ion-item [routerLink]="['/projekt-detail', projekt.id]" detail="true">
+          <ion-label>
+            <h2>{{ projekt.titel }}</h2>
+            @if (projekt.beschreibung) {
+              <p>{{ projekt.beschreibung }}</p>
+            }
+          </ion-label>
+          <ion-badge slot="end" color="secondary">
+            <ion-icon name="people-outline"></ion-icon>
+            {{ projekt.Team?.name ?? 'kein Team' }}
+          </ion-badge>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>

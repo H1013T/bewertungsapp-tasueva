@@ -1,0 +1,7 @@
+{
+  "name": "bewertungsapp-app",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}

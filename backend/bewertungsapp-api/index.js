@@ -7,6 +7,7 @@ const teamsRouter = require('./routes/teams');
 const projectsRouter = require('./routes/projects');
 const evaluationsRouter = require('./routes/evaluations');
 
+//Server gestartet
 const app = express();
 const PORT = process.env.PORT || 3000;
 

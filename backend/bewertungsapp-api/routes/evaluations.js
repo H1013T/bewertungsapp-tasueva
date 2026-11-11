@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models');
 const { Evaluation, Project, Criterion, Juror } = db;
-
 // alle Bewertungen, optional gefiltert per ?projectId=
 router.get('/', async (req, res) => {
   const where = {};
@@ -11,6 +10,7 @@ router.get('/', async (req, res) => {
   res.json(evaluations);
 });
 
+//VALIDIERUNG
 // neue Bewertung abspeichern
 router.post('/', async (req, res) => {
   const { score, comment, projectId, criterionId, jurorId } = req.body ?? {};

@@ -1,0 +1,26 @@
+.zentriert {
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
+}
+
+.meta {
+  margin-top: 8px;
+  color: var(--ion-color-medium);
+  font-size: 0.9em;
+}
+
+.kommentar {
+  font-style: italic;
+}
+
+ion-progress-bar {
+  margin-top: 8px;
+}
+
+.punkte {
+  font-size: 1.3em;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+}
